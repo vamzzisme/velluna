@@ -1,14 +1,20 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect, useState } from "react";
+import StartupScreen from "@/os/components/StartupScreen";
+import LoginScreen from "@/os/components/LoginScreen";
+import Desktop from "@/os/components/Desktop";
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [stage, setStage] = useState<'startup' | 'login' | 'desktop'>('startup');
+  const [user, setUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setStage('login'), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (stage === 'startup') return <StartupScreen />;
+  if (!user) return <LoginScreen onLogin={(u) => { setUser(u); setStage('desktop'); }} />;
+  return <Desktop />;
 };
 
 export default Index;
