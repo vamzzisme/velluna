@@ -170,3 +170,13 @@ export function updateFileContent(fs: FileSystem, fileId: string, content: strin
   saveFS(fs);
   return { ...fs, nodes: { ...fs.nodes } };
 }
+
+export function renameNode(fs: FileSystem, id: string, newName: string): FileSystem {
+  const node = fs.nodes[id];
+  if (node && newName && newName.trim()) {
+    node.name = newName.trim();
+    node.updatedAt = nowISO();
+    saveFS(fs);
+  }
+  return { ...fs, nodes: { ...fs.nodes } };
+}

@@ -21,7 +21,11 @@ export function formatVellunaDate(date: Date = new Date()): string {
   const dd = pad(date.getDate());
   const mm = pad(date.getMonth() + 1);
   const dayCount = daysSinceOrigin(date);
-  const hh = pad(date.getHours());
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const hh = pad(hours);
   const min = pad(date.getMinutes());
-  return `${dd}-${mm}-(${dayCount}) ${hh}:${min}`;
+  return `${dd}-${mm}-(${dayCount}) ${hh}:${min} ${ampm}`;
 }

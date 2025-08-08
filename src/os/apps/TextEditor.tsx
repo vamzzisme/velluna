@@ -5,19 +5,34 @@ export interface TextEditorProps {
   fs: FileSystem;
   fileId: string;
   onSave: (content: string) => void;
+  onRename: (name: string) => void;
 }
 
-const TextEditor = ({ fs, fileId, onSave }: TextEditorProps) => {
+const TextEditor = ({ fs, fileId, onSave, onRename }: TextEditorProps) => {
   const node = getNode(fs, fileId) as FileNode;
   const [text, setText] = useState(node?.content || "");
+  const [name, setName] = useState(node?.name || "");
 
   useEffect(() => {
     setText(node?.content || "");
+    setName(node?.name || "");
   }, [fileId]);
 
   return (
     <div className="h-full flex flex-col gap-3">
-      <div className="text-sm text-muted-foreground">Editing: {node?.name}</div>
+      <div className="flex items-center gap-2">
+        <input
+          className="px-2 py-1 border rounded-md bg-background text-sm flex-1"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <button
+          className="px-3 py-1 rounded-md bg-secondary border text-sm"
+          onClick={() => onRename(name)}
+        >
+          Rename
+        </button>
+      </div>
       <textarea
         className="flex-1 w-full border rounded-lg p-3 bg-background"
         value={text}

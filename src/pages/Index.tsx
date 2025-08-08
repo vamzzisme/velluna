@@ -14,7 +14,7 @@ const Index = () => {
 
   if (stage === 'startup') return <StartupScreen />;
   if (!user) return <LoginScreen onLogin={(u) => { setUser(u); setStage('desktop'); }} />;
-  return <Desktop />;
+  return <Desktop userId={user} onLogout={() => { setUser(null); setStage('login'); }} />;
 };
 
 export default Index;

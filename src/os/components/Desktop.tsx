@@ -4,10 +4,12 @@ import StartMenu from "@/os/components/StartMenu";
 import Taskbar from "@/os/components/Taskbar";
 import wallpaper from "@/assets/wallpapers/velluna-soft-pink.jpg";
 import { useEffect, useMemo, useState } from "react";
-import { FileSystem, FSNode, FolderNode, createFile, createFolder, getNode, listChildren, loadFS, updateFileContent } from "@/os/state/fs";
+import { FileSystem, FSNode, FolderNode, createFile, createFolder, getNode, listChildren, loadFS, updateFileContent, renameNode } from "@/os/state/fs";
 import FileExplorer from "@/os/apps/FileExplorer";
 import PhotosApp from "@/os/apps/PhotosApp";
 import TextEditor from "@/os/apps/TextEditor";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 const WP_KEY = 'velluna-wallpaper';
 
@@ -16,7 +18,7 @@ export type WindowKind =
   | { type: 'photos'; title: string }
   | { type: 'editor'; fileId: string; title: string };
 
-const Desktop = () => {
+const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId, onLogout }) => {
   const [fs, setFs] = useState<FileSystem>(() => loadFS());
   const [menuOpen, setMenuOpen] = useState(false);
   const [windows, setWindows] = useState<WindowKind[]>([]);
@@ -72,6 +74,17 @@ const Desktop = () => {
       {/* Slight overlay for legibility */}
       <div className="absolute inset-0 bg-background/30" />
 
+      {/* Top adornments */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 text-primary pulse select-none">♥</div>
+      <div className="absolute top-2 right-2 z-50">
+        <Tooltip>
+          <TooltipTrigger className="px-2 py-1 rounded-md border bg-card hover:bg-secondary text-xs flex items-center gap-1">
+            <Info className="h-4 w-4" /> Info
+          </TooltipTrigger>
+          <TooltipContent>Don’t forget you are being loved!!🥰</TooltipContent>
+        </Tooltip>
+      </div>
+
       {/* Desktop grid */}
       <div className="relative z-10 p-4 grid grid-cols-4 md:grid-cols-8 gap-4">
         {desktopChildren.map((n) => (
@@ -101,13 +114,13 @@ const Desktop = () => {
             <PhotosApp onSetWallpaper={async (file) => changeWallpaper(file)} />
           )}
           {w.type === 'editor' && (
-            <TextEditor fs={fs} fileId={w.fileId} onSave={(content) => setFs(updateFileContent(fs, w.fileId, content))} />
+            <TextEditor fs={fs} fileId={w.fileId} onSave={(content) => setFs(updateFileContent(fs, w.fileId, content))} onRename={(name) => setFs(renameNode(fs, w.fileId, name))} />
           )}
         </Window>
       ))}
 
       {/* Taskbar + Menu */}
-      <Taskbar onToggleMenu={() => setMenuOpen((v) => !v)} />
+      <Taskbar onToggleMenu={() => setMenuOpen((v) => !v)} userId={userId} onLogout={onLogout} />
       <div id="start-menu">
         <StartMenu
           open={menuOpen}
