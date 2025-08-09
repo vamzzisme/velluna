@@ -27,5 +27,5 @@ export function formatVellunaDate(date: Date = new Date()): string {
   if (hours === 0) hours = 12;
   const hh = pad(hours);
   const min = pad(date.getMinutes());
-  return `${dd}-${mm}-(${dayCount}) ${hh}:${min} ${ampm}`;
+  return `${dd}-${mm}-${dayCount} | ${hh}:${min} ${ampm}`;
 }
