@@ -66,7 +66,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </button>
 
           <div className="text-xs text-muted-foreground mt-4 text-center">
-            Psst… sorryuuu 😉 needed some confidentiality...
+            sorryuuu 😉 needed some confidentiality...
           </div>
         </div>
       </div>
