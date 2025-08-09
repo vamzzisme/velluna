@@ -7,7 +7,7 @@ export interface TaskbarProps {
   onLogout?: () => void;
 }
 
-const Taskbar = ({ onToggleMenu, userId }: TaskbarProps) => {
+const Taskbar = ({ onToggleMenu, userId, onLogout }: TaskbarProps) => {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -27,7 +27,18 @@ const Taskbar = ({ onToggleMenu, userId }: TaskbarProps) => {
         ~VA
       </button>
 
-      <div className="text-sm text-muted-foreground">{formatVellunaDate(now)}</div>
+      <div className="flex items-center gap-3">
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="px-3 py-1 rounded-md border bg-card hover:bg-secondary text-sm"
+            aria-label="Log out"
+          >
+            Logout
+          </button>
+        )}
+        <div className="text-sm text-muted-foreground">{formatVellunaDate(now)}</div>
+      </div>
     </div>
   );
 };

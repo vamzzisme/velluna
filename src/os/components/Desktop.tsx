@@ -10,9 +10,10 @@ import PhotosApp from "@/os/apps/PhotosApp";
 import TextEditor from "@/os/apps/TextEditor";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
 const WP_KEY = 'velluna-wallpaper';
-
+const PHOTOS_KEY = 'velluna-photos';
+const sb: any = supabase;
 export type WindowKind =
   | { type: 'explorer'; folderId: string; title: string }
   | { type: 'photos'; title: string }
@@ -23,7 +24,9 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
   const [menuOpen, setMenuOpen] = useState(false);
   const [windows, setWindows] = useState<WindowKind[]>([]);
   const [wallpaperUrl, setWallpaperUrl] = useState<string>(() => localStorage.getItem(WP_KEY) || wallpaper);
-
+  const [photos, setPhotos] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(PHOTOS_KEY) || '[]'); } catch { return []; }
+  });
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const el = e.target as HTMLElement;
@@ -35,6 +38,55 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
   }, []);
 
   const desktopChildren: FSNode[] = useMemo(() => listChildren(fs, fs.desktopId), [fs]);
+
+  // Persist photos locally for offline access
+  useEffect(() => {
+    try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos)); } catch {}
+  }, [photos]);
+
+  // Load cloud state for this user
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data, error }: any = await sb
+        .from('user_data')
+        .select('fs_json, photos, wallpaper_url')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Load user_data error', error);
+        return;
+      }
+
+      if (data) {
+        if (data.fs_json) setFs(data.fs_json as unknown as FileSystem);
+        if (data.wallpaper_url) {
+          setWallpaperUrl(data.wallpaper_url);
+          localStorage.setItem(WP_KEY, data.wallpaper_url);
+        }
+        if (Array.isArray(data.photos)) setPhotos(data.photos as string[]);
+      } else {
+        await sb.from('user_data').insert({
+          user_id: userId,
+          fs_json: fs as any,
+          photos: photos as any,
+          wallpaper_url: wallpaperUrl,
+        });
+      }
+    })();
+  }, [userId]);
+
+  // Save cloud state when things change
+  useEffect(() => {
+    if (!userId) return;
+    sb.from('user_data').upsert({
+      user_id: userId,
+      fs_json: fs as any,
+      photos: photos as any,
+      wallpaper_url: wallpaperUrl,
+    }, { onConflict: 'user_id' });
+  }, [fs, photos, wallpaperUrl, userId]);
 
   const openFolder = (folderId: string) => {
     const node = getNode(fs, folderId) as FolderNode;
@@ -111,7 +163,11 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             />
           )}
           {w.type === 'photos' && (
-            <PhotosApp onSetWallpaper={async (file) => changeWallpaper(file)} />
+            <PhotosApp
+              photos={photos}
+              onPhotosChange={setPhotos}
+              onSetWallpaper={async (file) => changeWallpaper(file)}
+            />
           )}
           {w.type === 'editor' && (
             <TextEditor fs={fs} fileId={w.fileId} onSave={(content) => setFs(updateFileContent(fs, w.fileId, content))} onRename={(name) => setFs(renameNode(fs, w.fileId, name))} />

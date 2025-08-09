@@ -4,6 +4,8 @@ const PHOTOS_KEY = 'velluna-photos';
 
 export interface PhotosAppProps {
   onSetWallpaper: (file: File) => void;
+  photos?: string[];
+  onPhotosChange?: (photos: string[]) => void;
 }
 
 function fileToDataUrl(file: File): Promise<string> {
