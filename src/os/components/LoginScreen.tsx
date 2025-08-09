@@ -3,7 +3,7 @@ import { Lock, User } from "lucide-react";
 
 const credentials: Record<string, string> = {
   "scooty-pep": "pumpkin",
-  "bottle-cap": ":her\"",
+  "bottle-cap": "her",
 };
 
 export interface LoginScreenProps {
@@ -27,9 +27,9 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-background">
       <div className="w-full max-w-sm p-6 rounded-2xl bg-card border shadow-lg animate-scale-in">
-        <h2 className="font-display text-2xl text-center mb-6">Welcome to Velluna</h2>
+        <h2 className="font-display text-2xl text-center mb-6">Wanna Swim..!!?</h2>
         <div className="space-y-3">
-          <label className="block text-sm text-muted-foreground">ID</label>
+          <label className="block text-sm text-muted-foreground">Lock 🕺🏼</label>
           <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2">
             <User className="h-4 w-4 text-muted-foreground" />
             <input
@@ -41,7 +41,7 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             />
           </div>
 
-          <label className="block text-sm text-muted-foreground mt-4">Password</label>
+          <label className="block text-sm text-muted-foreground mt-4">Key 💃🏼</label>
           <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
             <input
@@ -62,11 +62,11 @@ const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             className="mt-5 w-full rounded-lg bg-primary text-primary-foreground py-2 font-medium hover:opacity-90 transition"
             onClick={tryLogin}
           >
-            Enter
+            Dive
           </button>
 
           <div className="text-xs text-muted-foreground mt-4 text-center">
-            Psst… ID “scooty-pep” → password “pumpkin” • ID “bottle-cap” → password “:her\"”
+            Psst… sorryuuu 😉 needed some confidentiality...
           </div>
         </div>
       </div>
