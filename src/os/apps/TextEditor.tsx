@@ -1,4 +1,4 @@
-import { FileSystem, FileNode, getNode } from "@/os/state/fs";
+import { FileSystem, FileNode, getNode, getPath } from "@/os/state/fs";
 import { useEffect, useState } from "react";
 
 export interface TextEditorProps {
@@ -20,6 +20,7 @@ const TextEditor = ({ fs, fileId, onSave, onRename }: TextEditorProps) => {
 
   return (
     <div className="h-full flex flex-col gap-3">
+      <div className="text-xs text-muted-foreground">Path: {getPath(fs, fileId)}</div>
       <div className="flex items-center gap-2">
         <input
           className="px-2 py-1 border rounded-md bg-background text-sm flex-1"

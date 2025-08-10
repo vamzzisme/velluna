@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { Minus, X } from "lucide-react";
+import { X } from "lucide-react";
 
 export interface WindowProps {
   id: string;
@@ -12,7 +12,7 @@ const Window = ({ id, title, onClose, children }: WindowProps) => {
   const [pos, setPos] = useState({ x: 120 + Math.random() * 80, y: 80 + Math.random() * 60 });
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [minimized, setMinimized] = useState(false);
+  
 
   useEffect(() => {
     const move = (e: MouseEvent) => {
@@ -45,16 +45,6 @@ const Window = ({ id, title, onClose, children }: WindowProps) => {
         <div className="font-medium text-foreground">{title}</div>
         <div className="flex items-center gap-2">
           <button
-            className="p-1 rounded bg-muted/50 hover:bg-muted"
-            aria-label="Minimize"
-            onClick={(e) => {
-              e.stopPropagation();
-              setMinimized((v) => !v);
-            }}
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-          <button
             className="p-1 rounded bg-destructive text-destructive-foreground hover:opacity-90"
             onClick={(e) => {
               e.stopPropagation();
@@ -66,7 +56,7 @@ const Window = ({ id, title, onClose, children }: WindowProps) => {
           </button>
         </div>
       </div>
-      <div className={"w-full h-[calc(100%-2.5rem)] p-3 overflow-auto bg-background " + (minimized ? "hidden" : "")}>{children}</div>
+      <div className={"w-full h-[calc(100%-2.5rem)] p-3 overflow-auto bg-background "}>{children}</div>
     </div>
   );
 };

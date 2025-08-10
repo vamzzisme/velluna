@@ -4,13 +4,14 @@ import StartMenu from "@/os/components/StartMenu";
 import Taskbar from "@/os/components/Taskbar";
 import wallpaper from "@/assets/wallpapers/velluna-soft-pink.jpg";
 import { useEffect, useMemo, useState } from "react";
-import { FileSystem, FSNode, FolderNode, createFile, createFolder, getNode, listChildren, loadFS, updateFileContent, renameNode } from "@/os/state/fs";
+import { FileSystem, FSNode, FolderNode, createFile, createFolder, getNode, listChildren, loadFS, updateFileContent, renameNode, moveToTrash } from "@/os/state/fs";
 import FileExplorer from "@/os/apps/FileExplorer";
 import PhotosApp from "@/os/apps/PhotosApp";
 import TextEditor from "@/os/apps/TextEditor";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { daysSinceOrigin } from "@/os/utils/vellunaDate";
 const WP_KEY = 'velluna-wallpaper';
 const PHOTOS_KEY = 'velluna-photos';
 const sb: any = supabase;
@@ -126,14 +127,15 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
       {/* Slight overlay for legibility */}
       <div className="absolute inset-0 bg-background/30" />
 
-      {/* Top adornments */}
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 text-primary pulse select-none">♥</div>
+      {/* Top actions/info */}
       <div className="absolute top-2 right-2 z-50">
         <Tooltip>
           <TooltipTrigger className="px-2 py-1 rounded-md border bg-card hover:bg-secondary text-xs flex items-center gap-1">
-            <Info className="h-4 w-4" /> Info
+            <Info className="h-4 w-4" />
+            <span>Info</span>
+            <span className="text-primary animate-pulse">♥</span>
           </TooltipTrigger>
-          <TooltipContent>Don’t forget you are being loved!!🥰</TooltipContent>
+          <TooltipContent>Don"t forget you are being loved!!🥰</TooltipContent>
         </Tooltip>
       </div>
 
@@ -160,6 +162,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
               onOpenFile={openFile}
               onCreateFile={(name) => setFs(createFile(fs, w.folderId, name))}
               onCreateFolder={(name) => setFs(createFolder(fs, w.folderId, name))}
+              onDelete={(id) => setFs(moveToTrash(fs, id))}
             />
           )}
           {w.type === 'photos' && (
@@ -188,8 +191,32 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
           onChangeWallpaper={changeWallpaper}
         />
       </div>
+
+      {/* Quotes widget */}
+      <DesktopQuotes fs={fs} />
     </div>
   );
 };
 
 export default Desktop;
+
+// Lightweight quotes widget component
+const DesktopQuotes: React.FC<{ fs: FileSystem }> = ({ fs }) => {
+  // Find quotes.txt anywhere in the FS
+  const file = useMemo(() => {
+    return Object.values(fs.nodes).find((n) => n.type === 'file' && n.name.toLowerCase() === 'quotes.txt') as any;
+  }, [fs]);
+  const quote = useMemo(() => {
+    const content: string = file?.content || '';
+    const lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return "Create a quotes.txt file to show daily quotes";
+    const idx = daysSinceOrigin() % lines.length;
+    return lines[idx];
+  }, [file]);
+  return (
+    <div className="fixed left-3 bottom-16 z-40 max-w-sm rounded-xl border bg-card/80 backdrop-blur shadow-lg p-3 text-sm text-foreground">
+      <div className="font-medium mb-1">Daily Quote</div>
+      <div className="text-muted-foreground">{quote}</div>
+    </div>
+  );
+};

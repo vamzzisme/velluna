@@ -25,6 +25,7 @@ export interface FileSystem {
   nodes: Record<string, FSNode>;
   rootId: string;
   desktopId: string;
+  trashId: string;
 }
 
 const FS_KEY = 'velluna-fs';
@@ -40,9 +41,11 @@ function makeId(prefix: string = 'n') {
 function defaultFS(): FileSystem {
   const rootId = 'root';
   const desktopId = 'desktop';
+  const trashId = 'trash';
   const vellunaId = 'folder_velluna';
   const memoriesId = 'folder_memories';
   const readmeId = 'file_readme';
+  const quotesId = 'file_quotes';
   const ts = nowISO();
   const nodes: Record<string, FSNode> = {
     [rootId]: {
@@ -60,7 +63,16 @@ function defaultFS(): FileSystem {
       type: 'folder',
       createdAt: ts,
       updatedAt: ts,
-      children: [vellunaId, memoriesId, readmeId],
+      children: [vellunaId, memoriesId, readmeId, quotesId, trashId],
+    } as FolderNode,
+    [trashId]: {
+      id: trashId,
+      parentId: desktopId,
+      name: 'Trash',
+      type: 'folder',
+      createdAt: ts,
+      updatedAt: ts,
+      children: [],
     } as FolderNode,
     [vellunaId]: {
       id: vellunaId,
@@ -89,14 +101,44 @@ function defaultFS(): FileSystem {
       updatedAt: ts,
       content: 'To the brightest smile: every day since 17 Aug 2023 has been a new sunrise in my sky. – VA ♥',
     } as FileNode,
+    [quotesId]: {
+      id: quotesId,
+      parentId: desktopId,
+      name: 'quotes.txt',
+      type: 'file',
+      createdAt: ts,
+      updatedAt: ts,
+      content: 'Add one quote per line here.\nYou can edit this file any time from the Text Editor.\nKeep shining, you beautiful soul!',
+    } as FileNode,
   };
-  return { nodes, rootId, desktopId };
+  return { nodes, rootId, desktopId, trashId };
 }
 
 export function loadFS(): FileSystem {
   try {
     const raw = localStorage.getItem(FS_KEY);
-    if (raw) return JSON.parse(raw) as FileSystem;
+    if (raw) {
+      const parsed = JSON.parse(raw) as any;
+      // Migrations: ensure trash folder and quotes file exist
+      if (!parsed.trashId) {
+        const migrated = defaultFS();
+        // keep existing nodes if possible
+        parsed.trashId = migrated.trashId;
+        if (!parsed.nodes[migrated.trashId]) {
+          parsed.nodes[migrated.trashId] = migrated.nodes[migrated.trashId];
+          parsed.nodes[parsed.desktopId].children.push(migrated.trashId);
+        }
+        // add quotes file if missing
+        const quotesNode = Object.values(parsed.nodes).find((n: any) => n.type === 'file' && n.name?.toLowerCase?.() === 'quotes.txt');
+        if (!quotesNode) {
+          const q = (Object.keys(migrated.nodes) as string[]).find((k) => migrated.nodes[k].name === 'quotes.txt')!;
+          parsed.nodes[q] = migrated.nodes[q];
+          parsed.nodes[parsed.desktopId].children.push(q);
+        }
+        saveFS(parsed);
+      }
+      return parsed as FileSystem;
+    }
   } catch {}
   const fs = defaultFS();
   saveFS(fs);
@@ -120,10 +162,11 @@ export function getNode(fs: FileSystem, id: string): FSNode | undefined {
 export function createFile(fs: FileSystem, parentId: string, name: string): FileSystem {
   const id = makeId('file');
   const ts = nowISO();
+  const finalName = name.endsWith('.txt') ? name : `${name}.txt`;
   const file: FileNode = {
     id,
     parentId,
-    name,
+    name: finalName,
     type: 'file',
     createdAt: ts,
     updatedAt: ts,
@@ -173,10 +216,15 @@ export function updateFileContent(fs: FileSystem, fileId: string, content: strin
 
 export function renameNode(fs: FileSystem, id: string, newName: string): FileSystem {
   const node = fs.nodes[id];
-  if (node && newName && newName.trim()) {
-    node.name = newName.trim();
-    node.updatedAt = nowISO();
-    saveFS(fs);
+  if (!node || !newName || !newName.trim()) return { ...fs, nodes: { ...fs.nodes } };
+  if (node.type === 'folder') {
+    // Folder names are not renamable
+    return { ...fs, nodes: { ...fs.nodes } };
   }
+  let final = newName.trim();
+  if (!final.toLowerCase().endsWith('.txt')) final = `${final}.txt`;
+  node.name = final;
+  node.updatedAt = nowISO();
+  saveFS(fs);
   return { ...fs, nodes: { ...fs.nodes } };
 }

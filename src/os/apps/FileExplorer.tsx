@@ -1,4 +1,5 @@
 import { FileSystem, FolderNode, FSNode, getNode, listChildren } from "@/os/state/fs";
+import { getPath } from "@/os/state/fsUtils";
 import DesktopIcon from "@/os/components/DesktopIcon";
 import { useMemo, useState } from "react";
 
@@ -9,16 +10,17 @@ export interface FileExplorerProps {
   onOpenFile: (id: string) => void;
   onCreateFile: (name: string) => void;
   onCreateFolder: (name: string) => void;
+  onDelete: (id: string) => void;
 }
 
-const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, onCreateFolder }: FileExplorerProps) => {
+const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, onCreateFolder, onDelete }: FileExplorerProps) => {
   const folder = getNode(fs, folderId) as FolderNode;
   const children: FSNode[] = useMemo(() => listChildren(fs, folderId), [fs, folderId]);
   const [name, setName] = useState("");
 
   return (
     <div className="h-full flex flex-col gap-3">
-      <div className="text-sm text-muted-foreground">Location: {folder?.name}</div>
+      <div className="text-sm text-muted-foreground">Location: {getPath(fs, folderId)}</div>
       <div className="flex items-center gap-2">
         <input
           className="px-2 py-1 border rounded-md bg-background"
@@ -36,6 +38,7 @@ const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, on
             name={n.name}
             type={n.type}
             onOpen={() => (n.type === 'folder' ? onOpenFolder(n.id) : onOpenFile(n.id))}
+            onDelete={() => onDelete(n.id)}
           />
         ))}
       </div>
