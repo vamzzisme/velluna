@@ -17,14 +17,16 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-const PhotosApp = ({ onSetWallpaper }: PhotosAppProps) => {
-  const [photos, setPhotos] = useState<string[]>(() => {
+const PhotosApp = ({ onSetWallpaper, photos: controlledPhotos, onPhotosChange }: PhotosAppProps) => {
+  const [internalPhotos, setInternalPhotos] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(PHOTOS_KEY) || '[]'); } catch { return []; }
   });
+  const photos = controlledPhotos ?? internalPhotos;
 
   useEffect(() => {
-    localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos));
-  }, [photos]);
+    if (controlledPhotos) return;
+    localStorage.setItem(PHOTOS_KEY, JSON.stringify(internalPhotos));
+  }, [internalPhotos, controlledPhotos]);
 
   const onAdd = async (files: FileList | null) => {
     if (!files) return;
@@ -33,7 +35,7 @@ const PhotosApp = ({ onSetWallpaper }: PhotosAppProps) => {
       const dataUrl = await fileToDataUrl(f);
       arr.push(dataUrl);
     }
-    setPhotos((p) => [...arr, ...p]);
+    if (onPhotosChange) onPhotosChange([...arr, ...photos]); else setInternalPhotos((p) => [...arr, ...p]);
   };
 
   return (
