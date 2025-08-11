@@ -11,6 +11,9 @@ export interface FileExplorerProps {
   onCreateFile: (name: string) => void;
   onCreateFolder: (name: string) => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, newName: string) => void;
+  onRestore: (id: string) => void;
+  onPermanentDelete: (id: string) => void;
 }
 
 const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, onCreateFolder, onDelete }: FileExplorerProps) => {
