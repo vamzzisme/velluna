@@ -228,3 +228,6 @@ export function renameNode(fs: FileSystem, id: string, newName: string): FileSys
   saveFS(fs);
   return { ...fs, nodes: { ...fs.nodes } };
 }
+
+// Re-export utilities for backward compatibility
+export { getPath, moveToTrash } from "./fsUtils";
