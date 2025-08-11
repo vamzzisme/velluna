@@ -5,7 +5,7 @@ import Taskbar from "@/os/components/Taskbar";
 import wallpaper from "@/assets/wallpapers/velluna-soft-pink.jpg";
 import { useEffect, useMemo, useState } from "react";
 import { FileSystem, FSNode, FolderNode, createFile, createFolder, getNode, listChildren, loadFS, updateFileContent, renameNode } from "@/os/state/fs";
-import { moveToTrash } from "@/os/state/fsUtils";
+import { moveToTrash, restoreFromTrash, deletePermanently } from "@/os/state/fsUtils";
 import FileExplorer from "@/os/apps/FileExplorer";
 import PhotosApp from "@/os/apps/PhotosApp";
 import TextEditor from "@/os/apps/TextEditor";
@@ -220,6 +220,9 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
               onCreateFile={(name) => setFs(createFile(fs, w.folderId, name))}
               onCreateFolder={(name) => setFs(createFolder(fs, w.folderId, name))}
               onDelete={(id) => setFs(moveToTrash(fs, id))}
+              onRename={(id, name) => setFs(renameNode(fs, id, name))}
+              onRestore={(id) => setFs(restoreFromTrash(fs, id))}
+              onPermanentDelete={(id) => setFs(deletePermanently(fs, id))}
             />
           )}
           {w.type === 'photos' && (
