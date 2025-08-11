@@ -62,7 +62,62 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
       }
 
       if (data) {
-        if (data.fs_json) setFs(data.fs_json as unknown as FileSystem);
+        // Apply small migrations to ensure system nodes (Trash, quotes.txt) exist
+        let incoming = (data.fs_json || {}) as FileSystem;
+        try {
+          const ts = new Date().toISOString();
+          const next: FileSystem = {
+            ...incoming,
+            nodes: { ...(incoming?.nodes || {}) },
+          } as any;
+          // Ensure desktopId exists
+          const desktopId = next.desktopId || 'desktop';
+          const desktop = next.nodes?.[desktopId] as any;
+
+          // Ensure Trash exists and is on Desktop
+          if (!next.trashId || !next.nodes?.[next.trashId]) {
+            const trashId = 'trash';
+            if (!next.nodes[trashId]) {
+              (next as any).nodes[trashId] = {
+                id: trashId,
+                parentId: desktopId,
+                name: 'Trash',
+                type: 'folder',
+                createdAt: ts,
+                updatedAt: ts,
+                children: [],
+              } as any;
+            }
+            (next as any).trashId = 'trash';
+          }
+          if (desktop?.children && !desktop.children.includes(next.trashId)) {
+            desktop.children.push(next.trashId);
+          }
+
+          // Ensure quotes.txt exists somewhere
+          const hasQuotes = Object.values(next.nodes).some(
+            (n: any) => n?.type === 'file' && n?.name?.toLowerCase?.() === 'quotes.txt'
+          );
+          if (!hasQuotes && desktop) {
+            const qid = `file_${Math.random().toString(36).slice(2, 9)}`;
+            (next as any).nodes[qid] = {
+              id: qid,
+              parentId: desktopId,
+              name: 'quotes.txt',
+              type: 'file',
+              createdAt: ts,
+              updatedAt: ts,
+              content:
+                'The best is yet to come — VA\nYou are my favorite notification — VA\nLittle things, big love — VA\nEvery sunrise is brighter with you — VA\nYou make ordinary days magic — VA\nHere, now, always — VA\nGrow, glow, and go — VA\nMore than words, always — VA\nYou are my peace — VA\nSoft hearts move mountains — VA\nWe’ll laugh about this one day — VA\nToday is a good day to love — VA',
+            } as any;
+            desktop.children.push(qid);
+          }
+
+          setFs(next);
+        } catch {
+          setFs(incoming as any);
+        }
+
         if (data.wallpaper_url) {
           setWallpaperUrl(data.wallpaper_url);
           localStorage.setItem(WP_KEY, data.wallpaper_url);
@@ -148,6 +203,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             name={n.name}
             type={n.type}
             onOpen={() => (n.type === 'folder' ? openFolder(n.id) : openFile(n.id))}
+            onDelete={n.id !== fs.desktopId && n.id !== fs.trashId ? () => setFs(moveToTrash(fs, n.id)) : undefined}
           />
         ))}
       </div>

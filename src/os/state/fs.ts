@@ -108,7 +108,7 @@ function defaultFS(): FileSystem {
       type: 'file',
       createdAt: ts,
       updatedAt: ts,
-      content: 'Add one quote per line here.\nYou can edit this file any time from the Text Editor.\nKeep shining, you beautiful soul!',
+      content: 'The best is yet to come — VA\nYou are my favorite notification — VA\nLittle things, big love — VA\nEvery sunrise is brighter with you — VA\nYou make ordinary days magic — VA\nHere, now, always — VA\nGrow, glow, and go — VA\nMore than words, always — VA\nYou are my peace — VA\nSoft hearts move mountains — VA\nWe’ll laugh about this one day — VA\nToday is a good day to love — VA',
     } as FileNode,
   };
   return { nodes, rootId, desktopId, trashId };
@@ -217,14 +217,10 @@ export function updateFileContent(fs: FileSystem, fileId: string, content: strin
 export function renameNode(fs: FileSystem, id: string, newName: string): FileSystem {
   const node = fs.nodes[id];
   if (!node || !newName || !newName.trim()) return { ...fs, nodes: { ...fs.nodes } };
-  if (node.type === 'folder') {
-    // Folder names are not renamable
-    return { ...fs, nodes: { ...fs.nodes } };
-  }
   let final = newName.trim();
-  if (!final.toLowerCase().endsWith('.txt')) final = `${final}.txt`;
+  if (node.type === 'file' && !final.toLowerCase().endsWith('.txt')) final = `${final}.txt`;
   node.name = final;
-  node.updatedAt = nowISO();
+  (node as any).updatedAt = nowISO();
   saveFS(fs);
   return { ...fs, nodes: { ...fs.nodes } };
 }
