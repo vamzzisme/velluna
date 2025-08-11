@@ -1,4 +1,5 @@
-import { FileSystem, FileNode, getNode, getPath } from "@/os/state/fs";
+import { FileSystem, FileNode, getNode } from "@/os/state/fs";
+import { getPath } from "@/os/state/fsUtils";
 import { useEffect, useState } from "react";
 
 export interface TextEditorProps {
