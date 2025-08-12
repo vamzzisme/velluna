@@ -1,4 +1,4 @@
-import { Image, FolderPlus, FilePlus, Images, Folder, Settings2, FileText } from "lucide-react";
+import { Image, FolderPlus, FilePlus, Images, Folder, Settings2, FileText, Sparkles } from "lucide-react";
 
 export interface StartMenuProps {
   open: boolean;
@@ -8,9 +8,12 @@ export interface StartMenuProps {
   onOpenPhotos: () => void;
   onOpenExplorer: () => void;
   onChangeWallpaper: (file: File) => void;
+  onOpenQuotes?: () => void;
+  onOpenEasterEgg?: () => void;
+  version?: string;
 }
 
-const StartMenu = ({ open, onClose, onNewFile, onNewFolder, onOpenPhotos, onOpenExplorer, onChangeWallpaper }: StartMenuProps) => {
+const StartMenu = ({ open, onClose, onNewFile, onNewFolder, onOpenPhotos, onOpenExplorer, onChangeWallpaper, onOpenQuotes, onOpenEasterEgg, version }: StartMenuProps) => {
   if (!open) return null;
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,12 +38,19 @@ const StartMenu = ({ open, onClose, onNewFile, onNewFolder, onOpenPhotos, onOpen
       <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary" onClick={() => { onOpenPhotos(); onClose(); }}>
         <Images className="h-4 w-4" /> Photos
       </button>
+      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary" onClick={() => { onOpenQuotes?.(); onClose(); }}>
+        <FileText className="h-4 w-4" /> Open quotes.txt
+      </button>
+      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary" onClick={() => { onOpenEasterEgg?.(); onClose(); }}>
+        <Sparkles className="h-4 w-4" /> Easter Egg
+      </button>
       <label className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary cursor-pointer">
         <Image className="h-4 w-4" /> Change Wallpaper
         <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
       </label>
-      <div className="text-[10px] text-muted-foreground px-2 py-1 flex items-center gap-1">
-        <Settings2 className="h-3 w-3" /> Soft‑pink. Tender. Yours.
+      <div className="text-[10px] text-muted-foreground px-2 py-1 flex items-center justify-between gap-1">
+        <span className="flex items-center gap-1"><Settings2 className="h-3 w-3" /> Soft‑pink. Tender. Yours.</span>
+        {version && <span>{version}</span>}
       </div>
     </div>
   );

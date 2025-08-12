@@ -11,6 +11,7 @@ import PhotosApp from "@/os/apps/PhotosApp";
 import TextEditor from "@/os/apps/TextEditor";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { daysSinceOrigin } from "@/os/utils/vellunaDate";
 const WP_KEY = 'velluna-wallpaper';
@@ -29,6 +30,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
   const [photos, setPhotos] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(PHOTOS_KEY) || '[]'); } catch { return []; }
   });
+  const { toast } = useToast();
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const el = e.target as HTMLElement;
@@ -204,6 +206,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             type={n.type}
             onOpen={() => (n.type === 'folder' ? openFolder(n.id) : openFile(n.id))}
             onDelete={n.id !== fs.desktopId && n.id !== fs.trashId ? () => setFs(moveToTrash(fs, n.id)) : undefined}
+            isTrash={n.id === fs.trashId}
           />
         ))}
       </div>
@@ -233,7 +236,15 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             />
           )}
           {w.type === 'editor' && (
-            <TextEditor fs={fs} fileId={w.fileId} onSave={(content) => setFs(updateFileContent(fs, w.fileId, content))} onRename={(name) => setFs(renameNode(fs, w.fileId, name))} />
+            <TextEditor
+              fs={fs}
+              fileId={w.fileId}
+              onSave={(content) => {
+                setFs(updateFileContent(fs, w.fileId, content));
+                toast({ title: "Saved with love", description: "Your changes are safe and synced." });
+              }}
+              onRename={(name) => setFs(renameNode(fs, w.fileId, name))}
+            />
           )}
         </Window>
       ))}
