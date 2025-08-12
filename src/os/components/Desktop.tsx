@@ -206,6 +206,10 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             type={n.type}
             onOpen={() => (n.type === 'folder' ? openFolder(n.id) : openFile(n.id))}
             onDelete={n.id !== fs.desktopId && n.id !== fs.trashId ? () => setFs(moveToTrash(fs, n.id)) : undefined}
+            onRename={n.id !== fs.desktopId && n.id !== fs.trashId ? () => {
+              const newName = prompt('Rename to:', n.name) || '';
+              if (newName.trim()) setFs(renameNode(fs, n.id, newName.trim()));
+            } : undefined}
             isTrash={n.id === fs.trashId}
           />
         ))}
@@ -260,6 +264,15 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
           onOpenPhotos={() => setWindows((w) => [...w, { type: 'photos', title: 'Photos' }])}
           onOpenExplorer={() => setWindows((w) => [...w, { type: 'explorer', folderId: fs.desktopId, title: 'Desktop' }])}
           onChangeWallpaper={changeWallpaper}
+          onOpenQuotes={() => {
+            const q = Object.values(fs.nodes).find((n) => n.type === 'file' && n.name.toLowerCase() === 'quotes.txt') as any;
+            if (q) openFile(q.id);
+          }}
+          onOpenEasterEgg={() => {
+            const egg = Object.values(fs.nodes).find((n) => n.type === 'folder' && n.name.toLowerCase() === 'velluna') as any;
+            if (egg) openFolder(egg.id);
+          }}
+          version="v0.1.0"
         />
       </div>
 
@@ -285,9 +298,15 @@ const DesktopQuotes: React.FC<{ fs: FileSystem }> = ({ fs }) => {
     return lines[idx];
   }, [file]);
   return (
-    <div className="fixed left-3 bottom-16 z-40 max-w-sm rounded-xl border bg-card/80 backdrop-blur shadow-lg p-3 text-sm text-foreground">
-      <div className="font-medium mb-1">Daily Quote</div>
-      <div className="text-muted-foreground">{quote}</div>
+    <div className="fixed right-3 top-12 z-40">
+      <Tooltip>
+        <TooltipTrigger className="px-3 py-1 rounded-full border bg-card/80 backdrop-blur shadow-lg text-sm text-foreground">
+          To my Devil
+        </TooltipTrigger>
+        <TooltipContent className="max-w-sm">
+          <div className="text-muted-foreground">{quote}</div>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };
