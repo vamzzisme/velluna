@@ -269,7 +269,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             if (q) openFile(q.id);
           }}
           onOpenEasterEgg={() => {
-            const egg = Object.values(fs.nodes).find((n) => n.type === 'folder' && n.name.toLowerCase() === 'velluna') as any;
+            const egg = Object.values(fs.nodes).find((n) => n.type === 'folder' && n.name === 'Easter Egg') as any;
             if (egg) openFolder(egg.id);
           }}
           version="v0.1.0"

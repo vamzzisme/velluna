@@ -37,42 +37,59 @@ const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, on
         <button className="px-3 py-1 rounded-md bg-secondary border" onClick={() => { if(name){ onCreateFolder(name); setName(""); }}}>New Folder</button>
         <button className="px-3 py-1 rounded-md bg-primary text-primary-foreground" onClick={() => { if(name){ onCreateFile(name); setName(""); }}}>New File</button>
       </div>
-      <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-2">
-        {children.map((n) => (
-          <div key={n.id} className="flex flex-col items-center gap-1">
-            <DesktopIcon
-              name={n.name}
-              type={n.type}
-              onOpen={() => (n.type === 'folder' ? onOpenFolder(n.id) : onOpenFile(n.id))}
-              onDelete={isTrashFolder ? undefined : () => onDelete(n.id)}
-              onRename={() => { setEditingId(n.id); setEditingName(n.name); }}
-            />
-            {editingId === n.id && (
-              <div className="w-full flex items-center gap-1">
-                <input
-                  className="px-2 py-1 border rounded-md bg-background w-full text-xs"
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { onRename(n.id, editingName); setEditingId(null); } }}
-                />
-                <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => { onRename(n.id, editingName); setEditingId(null); }}>Save</button>
-                <button className="px-2 py-1 rounded-md border text-xs" onClick={() => setEditingId(null)}>Cancel</button>
-              </div>
-            )}
-            {isTrashFolder && (
-              <div className="flex items-center gap-2">
-                <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => onRestore(n.id)}>Restore</button>
-                <button
-                  className="px-2 py-1 rounded-md bg-destructive text-destructive-foreground text-xs border"
-                  onClick={() => { if (confirm('Permanently delete this item? This cannot be undone.')) onPermanentDelete(n.id); }}
-                >
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Content area */}
+      {children.length === 0 ? (
+        <div className="mt-6 p-4 rounded-lg border bg-card text-sm text-muted-foreground">
+          {(() => {
+            const isEmptyEgg = folder?.name?.toLowerCase?.() === 'empty';
+            const now = new Date();
+            const is735 = now.getMinutes() === 35 && (now.getHours() % 12) === 7;
+            if (isEmptyEgg) {
+              return is735
+                ? 'It was just to keep u occupied, hehe 😌'
+                : 'Come back at the right time to see the magic. Hint: You ride on it everyday!!';
+            }
+            return 'This folder is empty.';
+          })()}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-2">
+          {children.map((n) => (
+            <div key={n.id} className="flex flex-col items-center gap-1">
+              <DesktopIcon
+                name={n.name}
+                type={n.type}
+                onOpen={() => (n.type === 'folder' ? onOpenFolder(n.id) : onOpenFile(n.id))}
+                onDelete={isTrashFolder ? undefined : () => onDelete(n.id)}
+                onRename={() => { setEditingId(n.id); setEditingName(n.name); }}
+              />
+              {editingId === n.id && (
+                <div className="w-full flex items-center gap-1">
+                  <input
+                    className="px-2 py-1 border rounded-md bg-background w-full text-xs"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { onRename(n.id, editingName); setEditingId(null); } }}
+                  />
+                  <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => { onRename(n.id, editingName); setEditingId(null); }}>Save</button>
+                  <button className="px-2 py-1 rounded-md border text-xs" onClick={() => setEditingId(null)}>Cancel</button>
+                </div>
+              )}
+              {isTrashFolder && (
+                <div className="flex items-center gap-2">
+                  <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => onRestore(n.id)}>Restore</button>
+                  <button
+                    className="px-2 py-1 rounded-md bg-destructive text-destructive-foreground text-xs border"
+                    onClick={() => { if (confirm('Permanently delete this item? This cannot be undone.')) onPermanentDelete(n.id); }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

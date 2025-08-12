@@ -46,6 +46,9 @@ function defaultFS(): FileSystem {
   const memoriesId = 'folder_memories';
   const readmeId = 'file_readme';
   const quotesId = 'file_quotes';
+  const easterId = 'folder_easter';
+  const emptyId = 'folder_empty';
+  const morseId = 'file_morse';
   const ts = nowISO();
   const nodes: Record<string, FSNode> = {
     [rootId]: {
@@ -63,7 +66,7 @@ function defaultFS(): FileSystem {
       type: 'folder',
       createdAt: ts,
       updatedAt: ts,
-      children: [vellunaId, memoriesId, readmeId, quotesId, trashId],
+      children: [vellunaId, memoriesId, readmeId, quotesId, easterId, trashId],
     } as FolderNode,
     [trashId]: {
       id: trashId,
@@ -110,6 +113,33 @@ function defaultFS(): FileSystem {
       updatedAt: ts,
       content: 'The best is yet to come — VA\nYou are my favorite notification — VA\nLittle things, big love — VA\nEvery sunrise is brighter with you — VA\nYou make ordinary days magic — VA\nHere, now, always — VA\nGrow, glow, and go — VA\nMore than words, always — VA\nYou are my peace — VA\nSoft hearts move mountains — VA\nWe’ll laugh about this one day — VA\nToday is a good day to love — VA',
     } as FileNode,
+    [easterId]: {
+      id: easterId,
+      parentId: desktopId,
+      name: 'Easter Egg',
+      type: 'folder',
+      createdAt: ts,
+      updatedAt: ts,
+      children: [emptyId, morseId],
+    } as FolderNode,
+    [emptyId]: {
+      id: emptyId,
+      parentId: easterId,
+      name: 'Empty',
+      type: 'folder',
+      createdAt: ts,
+      updatedAt: ts,
+      children: [],
+    } as FolderNode,
+    [morseId]: {
+      id: morseId,
+      parentId: easterId,
+      name: 'morse.txt',
+      type: 'file',
+      createdAt: ts,
+      updatedAt: ts,
+      content: 'I LOVE YOU: .. .-.. --- ...- . / -.-- --- ..-\nI MISS YOU: .. / -- .. ... ... / -.-- --- ..-\nALWAYS: .- .-.. .-- .- -.-- ...\nFOREVER: ..-. --- .-. . ...- . .-.',
+    } as FileNode,
   };
   return { nodes, rootId, desktopId, trashId };
 }
@@ -137,6 +167,23 @@ export function loadFS(): FileSystem {
         }
         saveFS(parsed);
       }
+      // Ensure Easter Egg folder exists
+      try {
+        const hasEaster = Object.values(parsed.nodes || {}).some((n: any) => n?.type === 'folder' && n?.name === 'Easter Egg');
+        if (!hasEaster) {
+          const ts = nowISO();
+          const desktopId = parsed.desktopId;
+          const easterId = makeId('folder');
+          const emptyId = makeId('folder');
+          const morseId = makeId('file');
+          parsed.nodes[easterId] = { id: easterId, parentId: desktopId, name: 'Easter Egg', type: 'folder', createdAt: ts, updatedAt: ts, children: [emptyId, morseId] };
+          parsed.nodes[emptyId] = { id: emptyId, parentId: easterId, name: 'Empty', type: 'folder', createdAt: ts, updatedAt: ts, children: [] };
+          parsed.nodes[morseId] = { id: morseId, parentId: easterId, name: 'morse.txt', type: 'file', createdAt: ts, updatedAt: ts, content: 'I LOVE YOU: .. .-.. --- ...- . / -.-- --- ..-\nI MISS YOU: .. / -- .. ... ... / -.-- --- ..-\nALWAYS: .- .-.. .-- .- -.-- ...\nFOREVER: ..-. --- .-. . ...- . .-.' };
+          const desktop = parsed.nodes[desktopId];
+          if (desktop?.children && !desktop.children.includes(easterId)) desktop.children.push(easterId);
+          saveFS(parsed);
+        }
+      } catch {}
       return parsed as FileSystem;
     }
   } catch {}
