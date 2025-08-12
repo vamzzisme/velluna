@@ -220,6 +220,9 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
               onCreateFile={(name) => setFs(createFile(fs, w.folderId, name))}
               onCreateFolder={(name) => setFs(createFolder(fs, w.folderId, name))}
               onDelete={(id) => setFs(moveToTrash(fs, id))}
+              onRename={(id, name) => setFs(renameNode(fs, id, name))}
+              onRestore={(id) => setFs(restoreFromTrash(fs, id))}
+              onPermanentDelete={(id) => setFs(deletePermanently(fs, id))}
             />
           )}
           {w.type === 'photos' && (
