@@ -21,15 +21,15 @@ const Taskbar = ({ onToggleMenu, userId, onLogout }: TaskbarProps) => {
     <div className="fixed bottom-0 inset-x-0 h-12 border-t bg-card/80 backdrop-blur flex items-center justify-between px-3">
       <div className="flex items-center gap-2">
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <button 
               aria-label="OS battery" 
-              className="p-1 rounded-md border bg-card hover:bg-secondary"
+              className="p-1 rounded-md border bg-card hover:bg-secondary transition-all duration-150"
             >
               <BatteryFull className="h-4 w-4 text-primary" />
             </button>
           </TooltipTrigger>
-          <TooltipContent>This OS runs on 3 things: Hope, Heartbeats, and You</TooltipContent>
+          <TooltipContent side="top">This OS runs on 3 things: Hope, Heartbeats, and You</TooltipContent>
         </Tooltip>
         <button
           id="start-trigger"

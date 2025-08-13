@@ -23,7 +23,7 @@ const DesktopIcon = ({ name, type, onOpen, onDelete, onRename, isTrash, isEaster
           isTrash ? (
             <Trash2 className="h-8 w-8 text-primary" />
           ) : isEasterEgg ? (
-            <Sparkles className="h-8 w-8 text-primary" />
+            <Sparkles className="h-8 w-8 text-primary animate-glow" />
           ) : isDiary ? (
             <Heart className="h-8 w-8 text-primary animate-heartbeat" />
           ) : (

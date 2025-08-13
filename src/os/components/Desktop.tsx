@@ -193,7 +193,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             <span>Info</span>
             <span className="text-primary animate-pulse">♥</span>
           </TooltipTrigger>
-          <TooltipContent>Don't forget you are being loved!!🥰</TooltipContent>
+          <TooltipContent>Don"t forget you are being loved!!🥰</TooltipContent>
         </Tooltip>
       </div>
 
@@ -306,11 +306,11 @@ const DesktopQuotes: React.FC<{ fs: FileSystem }> = ({ fs }) => {
   return (
     <div className="fixed right-3 top-12 z-40">
       <Tooltip>
-        <TooltipTrigger className="px-4 py-2 rounded-full border bg-card/80 backdrop-blur shadow-lg text-sm text-foreground">
+        <TooltipTrigger className="px-4 py-2 rounded-full border bg-card/80 backdrop-blur shadow-lg text-sm text-foreground transition-all duration-200 animate-float">
           <span className="flex items-center gap-2">
             <Heart className="h-4 w-4 animate-heartbeat" />
-            Come here!
-            <Sparkles className="h-4 w-4" />
+            For My Heart
+            <Sparkles className="h-4 w-4 animate-glow" />
           </span>
         </TooltipTrigger>
         <TooltipContent className="max-w-sm animate-scale-in">
