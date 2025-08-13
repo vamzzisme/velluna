@@ -238,56 +238,83 @@ P.S. - On days when you doubt, come back to these words. They will always be tru
   return { nodes, rootId, desktopId, trashId };
 }
 
+import { supabase } from '@/integrations/supabase/client';
+
+let cachedFS: FileSystem | null = null;
+
 export function loadFS(): FileSystem {
+  if (cachedFS) return cachedFS;
+  
+  // Sync load from localStorage initially
   try {
     const raw = localStorage.getItem(FS_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as any;
-      // Migrations: ensure trash folder and quotes file exist
-      if (!parsed.trashId) {
-        const migrated = defaultFS();
-        // keep existing nodes if possible
-        parsed.trashId = migrated.trashId;
-        if (!parsed.nodes[migrated.trashId]) {
-          parsed.nodes[migrated.trashId] = migrated.nodes[migrated.trashId];
-          parsed.nodes[parsed.desktopId].children.push(migrated.trashId);
-        }
-        // add quotes file if missing
-        const quotesNode = Object.values(parsed.nodes).find((n: any) => n.type === 'file' && n.name?.toLowerCase?.() === 'quotes.txt');
-        if (!quotesNode) {
-          const q = (Object.keys(migrated.nodes) as string[]).find((k) => migrated.nodes[k].name === 'quotes.txt')!;
-          parsed.nodes[q] = migrated.nodes[q];
-          parsed.nodes[parsed.desktopId].children.push(q);
-        }
-        saveFS(parsed);
-      }
-      // Ensure Easter Egg folder exists
-      try {
-        const hasEaster = Object.values(parsed.nodes || {}).some((n: any) => n?.type === 'folder' && n?.name === 'Easter Egg');
-        if (!hasEaster) {
-          const ts = nowISO();
-          const desktopId = parsed.desktopId;
-          const easterId = makeId('folder');
-          const emptyId = makeId('folder');
-          const morseId = makeId('file');
-          parsed.nodes[easterId] = { id: easterId, parentId: desktopId, name: 'Easter Egg', type: 'folder', createdAt: ts, updatedAt: ts, children: [emptyId, morseId] };
-          parsed.nodes[emptyId] = { id: emptyId, parentId: easterId, name: 'Empty', type: 'folder', createdAt: ts, updatedAt: ts, children: [] };
-          parsed.nodes[morseId] = { id: morseId, parentId: easterId, name: 'morse.txt', type: 'file', createdAt: ts, updatedAt: ts, content: 'I LOVE YOU: .. .-.. --- ...- . / -.-- --- ..-\nI MISS YOU: .. / -- .. ... ... / -.-- --- ..-\nALWAYS: .- .-.. .-- .- -.-- ...\nFOREVER: ..-. --- .-. . ...- . .-.' };
-          const desktop = parsed.nodes[desktopId];
-          if (desktop?.children && !desktop.children.includes(easterId)) desktop.children.push(easterId);
-          saveFS(parsed);
-        }
-      } catch {}
-      return parsed as FileSystem;
+      cachedFS = JSON.parse(raw) as FileSystem;
+    } else {
+      cachedFS = defaultFS();
+      localStorage.setItem(FS_KEY, JSON.stringify(cachedFS));
     }
-  } catch {}
-  const fs = defaultFS();
-  saveFS(fs);
+  } catch {
+    cachedFS = defaultFS();
+    localStorage.setItem(FS_KEY, JSON.stringify(cachedFS));
+  }
+  
+  // Async load from Supabase in background
+  loadFromSupabase();
+  return cachedFS;
+}
+
+async function loadFromSupabase(): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('fs_json')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data?.fs_json && !error) {
+        const parsed = data.fs_json as any;
+        cachedFS = parsed as FileSystem;
+        localStorage.setItem(FS_KEY, JSON.stringify(cachedFS));
+      } else if (cachedFS) {
+        // Migrate local data to Supabase
+        await saveFS(cachedFS);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading from Supabase:', error);
+  }
+}
+
+export function saveFS(fs: FileSystem): FileSystem {
+  cachedFS = fs;
+  localStorage.setItem(FS_KEY, JSON.stringify(fs));
+  
+  // Async save to Supabase
+  saveToSupabase(fs).catch(error => {
+    console.error('Error saving to Supabase:', error);
+  });
+  
   return fs;
 }
 
-export function saveFS(fs: FileSystem) {
-  localStorage.setItem(FS_KEY, JSON.stringify(fs));
+async function saveToSupabase(fs: FileSystem): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from('user_data')
+        .upsert({
+          user_id: user.id,
+          fs_json: fs as any,
+          updated_at: new Date().toISOString()
+        });
+    }
+  } catch (error) {
+    console.error('Error saving to Supabase:', error);
+  }
 }
 
 export function listChildren(fs: FileSystem, folderId: string): FSNode[] {
