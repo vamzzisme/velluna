@@ -10,10 +10,11 @@ export interface StartMenuProps {
   onChangeWallpaper: (file: File) => void;
   onOpenQuotes?: () => void;
   onOpenEasterEgg?: () => void;
+  onOpenDiary?: () => void;
   version?: string;
 }
 
-const StartMenu = ({ open, onClose, onNewFile, onNewFolder, onOpenPhotos, onOpenExplorer, onChangeWallpaper, onOpenQuotes, onOpenEasterEgg, version }: StartMenuProps) => {
+const StartMenu = ({ open, onClose, onNewFile, onNewFolder, onOpenPhotos, onOpenExplorer, onChangeWallpaper, onOpenQuotes, onOpenEasterEgg, onOpenDiary, version }: StartMenuProps) => {
   if (!open) return null;
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,13 +39,16 @@ const StartMenu = ({ open, onClose, onNewFile, onNewFolder, onOpenPhotos, onOpen
       <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary" onClick={() => { onOpenPhotos(); onClose(); }}>
         <Images className="h-4 w-4" /> Photos
       </button>
-      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary" onClick={() => { onOpenQuotes?.(); onClose(); }}>
-        <FileText className="h-4 w-4" /> Open quotes.txt
+      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all duration-150" onClick={() => { onOpenDiary?.(); onClose(); }}>
+        <FileText className="h-4 w-4" /> The Diary
       </button>
-      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary" onClick={() => { onOpenEasterEgg?.(); onClose(); }}>
+      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all duration-150" onClick={() => { onOpenQuotes?.(); onClose(); }}>
+        <FileText className="h-4 w-4" /> quotes.txt
+      </button>
+      <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all duration-150" onClick={() => { onOpenEasterEgg?.(); onClose(); }}>
         <Sparkles className="h-4 w-4" /> Easter Egg
       </button>
-      <label className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary cursor-pointer">
+      <label className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary cursor-pointer transition-all duration-150">
         <Image className="h-4 w-4" /> Change Wallpaper
         <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
       </label>

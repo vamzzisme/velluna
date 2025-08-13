@@ -49,6 +49,10 @@ function defaultFS(): FileSystem {
   const easterId = 'folder_easter';
   const emptyId = 'folder_empty';
   const morseId = 'file_morse';
+  const diaryId = 'folder_diary';
+  const mondayId = 'file_monday';
+  const tuesdayId = 'file_tuesday';
+  const noteId = 'file_note';
   const ts = nowISO();
   const nodes: Record<string, FSNode> = {
     [rootId]: {
@@ -66,7 +70,7 @@ function defaultFS(): FileSystem {
       type: 'folder',
       createdAt: ts,
       updatedAt: ts,
-      children: [vellunaId, memoriesId, readmeId, quotesId, easterId, trashId],
+      children: [vellunaId, memoriesId, readmeId, quotesId, easterId, diaryId, trashId],
     } as FolderNode,
     [trashId]: {
       id: trashId,
@@ -138,7 +142,97 @@ function defaultFS(): FileSystem {
       type: 'file',
       createdAt: ts,
       updatedAt: ts,
-      content: 'I LOVE YOU: .. .-.. --- ...- . / -.-- --- ..-\nI MISS YOU: .. / -- .. ... ... / -.-- --- ..-\nALWAYS: .- .-.. .-- .- -.-- ...\nFOREVER: ..-. --- .-. . ...- . .-.',
+      content: `Morse Code Messages:
+
+I LOVE YOU: .. / .-.. --- ...- . / -.-- --- ..-
+
+I MISS YOU: .. / -- .. ... ... / -.-- --- ..-
+
+GOOD MORNING: --. --- --- -.. / -- --- .-. -. .. -. --.
+
+SWEET DREAMS: ... .-- . . - / -.. .-. . .- -- ...
+
+YOU ARE BEAUTIFUL: -.-- --- ..- / .- .-. . / -... . .- ..- - .. ..-. ..- .-..
+
+THINKING OF YOU: - .... .. -. -.- .. -. --. / --- ..-. / -.-- --- ..-
+
+FOREVER YOURS: ..-. --- .-. . ...- . .-. / -.-- --- ..- .-. ...`,
+    } as FileNode,
+    [diaryId]: {
+      id: diaryId,
+      parentId: desktopId,
+      name: 'The Diary',
+      type: 'folder',
+      createdAt: ts,
+      updatedAt: ts,
+      children: [mondayId, tuesdayId, noteId],
+    } as FolderNode,
+    [mondayId]: {
+      id: mondayId,
+      parentId: diaryId,
+      name: 'Monday.txt',
+      type: 'file',
+      createdAt: ts,
+      updatedAt: ts,
+      content: `Monday, Dear Diary,
+
+Another week begins with the soft whisper of possibility. The morning light filtered through my window like hope itself, painting everything in that tender pink hue I've grown to love.
+
+Today I thought about how every heartbeat carries a promise, and every breath holds a secret wish.
+
+- Your thoughts matter
+- Your dreams are valid
+- You are enough
+
+Until tomorrow,
+💗`,
+    } as FileNode,
+    [tuesdayId]: {
+      id: tuesdayId,
+      parentId: diaryId,
+      name: 'Tuesday.txt',
+      type: 'file',
+      createdAt: ts,
+      updatedAt: ts,
+      content: `Tuesday, My Dear Companion,
+
+The second day brought clarity like the morning dew. I found myself smiling at small things - the way shadows dance, how time seems to slow when you're truly present.
+
+There's magic in the mundane when you look with the right eyes.
+
+Remember:
+- Be gentle with yourself
+- Embrace the journey
+- Love fiercely but wisely
+
+With all my tenderness,
+💗`,
+    } as FileNode,
+    [noteId]: {
+      id: noteId,
+      parentId: diaryId,
+      name: 'Personal Note.txt',
+      type: 'file',
+      createdAt: ts,
+      updatedAt: ts,
+      content: `My Dearest Self,
+
+This is a reminder of who you are when the world feels heavy:
+
+You are the soft pink sunrise that breaks through the darkest nights.
+You are the gentle heartbeat that keeps hope alive.
+You are the whispered prayer that never goes unheard.
+
+Your sensitivity is your superpower.
+Your kindness is your strength.
+Your love is your legacy.
+
+Never forget that you are beautifully, perfectly, tenderly you.
+
+Forever yours,
+The voice that believes in you 💗
+
+P.S. - On days when you doubt, come back to these words. They will always be true.`,
     } as FileNode,
   };
   return { nodes, rootId, desktopId, trashId };

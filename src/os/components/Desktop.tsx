@@ -10,7 +10,7 @@ import FileExplorer from "@/os/apps/FileExplorer";
 import PhotosApp from "@/os/apps/PhotosApp";
 import TextEditor from "@/os/apps/TextEditor";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, Sparkles, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { daysSinceOrigin } from "@/os/utils/vellunaDate";
@@ -205,12 +205,14 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             name={n.name}
             type={n.type}
             onOpen={() => (n.type === 'folder' ? openFolder(n.id) : openFile(n.id))}
-            onDelete={n.id !== fs.desktopId && n.id !== fs.trashId ? () => setFs(moveToTrash(fs, n.id)) : undefined}
+            onDelete={n.id !== fs.desktopId && n.id !== fs.trashId && n.name !== 'Easter Egg' ? () => setFs(moveToTrash(fs, n.id)) : undefined}
             onRename={n.id !== fs.desktopId && n.id !== fs.trashId ? () => {
               const newName = prompt('Rename to:', n.name) || '';
               if (newName.trim()) setFs(renameNode(fs, n.id, newName.trim()));
             } : undefined}
             isTrash={n.id === fs.trashId}
+            isEasterEgg={n.name === 'Easter Egg'}
+            isDiary={n.name === 'The Diary'}
           />
         ))}
       </div>
@@ -272,6 +274,10 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             const egg = Object.values(fs.nodes).find((n) => n.type === 'folder' && n.name === 'Easter Egg') as any;
             if (egg) openFolder(egg.id);
           }}
+          onOpenDiary={() => {
+            const diary = Object.values(fs.nodes).find((n) => n.type === 'folder' && n.name === 'The Diary') as any;
+            if (diary) openFolder(diary.id);
+          }}
           version="v0.1.0"
         />
       </div>
@@ -300,11 +306,15 @@ const DesktopQuotes: React.FC<{ fs: FileSystem }> = ({ fs }) => {
   return (
     <div className="fixed right-3 top-12 z-40">
       <Tooltip>
-        <TooltipTrigger className="px-3 py-1 rounded-full border bg-card/80 backdrop-blur shadow-lg text-sm text-foreground">
-          To my Devil
+        <TooltipTrigger className="px-4 py-2 rounded-full border bg-card/80 backdrop-blur shadow-lg text-sm text-foreground transition-all duration-200 animate-float">
+          <span className="flex items-center gap-2">
+            <Heart className="h-4 w-4 animate-heartbeat" />
+            For My Heart
+            <Sparkles className="h-4 w-4 animate-glow" />
+          </span>
         </TooltipTrigger>
-        <TooltipContent className="max-w-sm">
-          <div className="text-muted-foreground">{quote}</div>
+        <TooltipContent className="max-w-sm animate-scale-in">
+          <div className="text-muted-foreground italic">{quote}</div>
         </TooltipContent>
       </Tooltip>
     </div>
