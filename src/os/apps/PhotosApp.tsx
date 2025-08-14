@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+const SHARED_FS_ID = 'shared';
 
 const PHOTOS_KEY = 'velluna-photos';
 
@@ -23,6 +25,8 @@ const PhotosApp = ({ onSetWallpaper, photos: controlledPhotos, onPhotosChange }:
   });
   const photos = controlledPhotos ?? internalPhotos;
 
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+
   useEffect(() => {
     if (controlledPhotos) return;
     localStorage.setItem(PHOTOS_KEY, JSON.stringify(internalPhotos));
@@ -35,7 +39,20 @@ const PhotosApp = ({ onSetWallpaper, photos: controlledPhotos, onPhotosChange }:
       const dataUrl = await fileToDataUrl(f);
       arr.push(dataUrl);
     }
-    if (onPhotosChange) onPhotosChange([...arr, ...photos]); else setInternalPhotos((p) => [...arr, ...p]);
+    const finalPhotos = [...arr, ...photos];
+    if (onPhotosChange) onPhotosChange(finalPhotos); else setInternalPhotos(finalPhotos);
+
+    // Save to Supabase
+    try {
+      await supabase
+        .from('user_data')
+        .upsert({
+          user_id: SHARED_FS_ID,
+          photos: finalPhotos,
+        }, { onConflict: 'user_id' });
+    } catch (err) {
+      console.error('Error saving photos to Supabase:', err);
+    }
   };
 
   return (
@@ -52,18 +69,40 @@ const PhotosApp = ({ onSetWallpaper, photos: controlledPhotos, onPhotosChange }:
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {photos.map((src, i) => (
-            <div key={i} className="relative group">
+            <div key={i} className="relative group" onClick={() => setPreviewSrc(src)}>
               <img src={src} alt={`Memory ${i+1}`} loading="lazy" className="w-full h-32 object-cover rounded-lg border" />
               <div className="absolute inset-0 bg-background/0 group-hover:bg-background/30 transition rounded-lg grid place-items-center opacity-0 group-hover:opacity-100">
-                <button className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-sm" onClick={async () => {
-                  const res = await fetch(src);
-                  const blob = await res.blob();
-                  const file = new File([blob], 'wallpaper.jpg', { type: blob.type });
-                  onSetWallpaper(file);
-                }}>Set as wallpaper</button>
+                <div className="flex flex-col gap-2">
+                  <button className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-sm" onClick={async (e) => {
+                    e.stopPropagation();
+                    const res = await fetch(src);
+                    const blob = await res.blob();
+                    const file = new File([blob], 'wallpaper.jpg', { type: blob.type });
+                    onSetWallpaper(file);
+                  }}>Set as wallpaper</button>
+                  <button className="px-2 py-1 rounded-md bg-red-500 text-white text-sm" onClick={async (e) => {
+                    e.stopPropagation();
+                    const newPhotos = photos.filter((_, idx) => idx !== i);
+                    if (onPhotosChange) onPhotosChange(newPhotos); else setInternalPhotos(newPhotos);
+                    try {
+                      await supabase
+                        .from('user_data')
+                        .upsert({ user_id: SHARED_FS_ID, photos: newPhotos }, { onConflict: 'user_id' });
+                    } catch (err) { console.error(err); }
+                  }}>Delete</button>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {previewSrc && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setPreviewSrc(null)}>
+          <div className="relative max-w-[70vw] max-h-[70vh]" onClick={(e) => e.stopPropagation()}>
+            <img src={previewSrc} alt="Preview" className="w-auto h-auto max-w-[70vw] max-h-[70vh] rounded-lg shadow-lg object-contain" />
+            <button className="absolute top-2 right-2 px-2 py-1 bg-white rounded-md text-black font-bold" onClick={() => setPreviewSrc(null)}>✕</button>
+          </div>
         </div>
       )}
     </div>

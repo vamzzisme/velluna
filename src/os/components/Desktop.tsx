@@ -96,25 +96,6 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             desktop.children.push(next.trashId);
           }
 
-          // Ensure quotes.txt exists somewhere
-          const hasQuotes = Object.values(next.nodes).some(
-            (n: any) => n?.type === 'file' && n?.name?.toLowerCase?.() === 'quotes.txt'
-          );
-          if (!hasQuotes && desktop) {
-            const qid = `file_${Math.random().toString(36).slice(2, 9)}`;
-            (next as any).nodes[qid] = {
-              id: qid,
-              parentId: desktopId,
-              name: 'quotes.txt',
-              type: 'file',
-              createdAt: ts,
-              updatedAt: ts,
-              content:
-                'The best is yet to come — VA\nYou are my favorite notification — VA\nLittle things, big love — VA\nEvery sunrise is brighter with you — VA\nYou make ordinary days magic — VA\nHere, now, always — VA\nGrow, glow, and go — VA\nMore than words, always — VA\nYou are my peace — VA\nSoft hearts move mountains — VA\nWe’ll laugh about this one day — VA\nToday is a good day to love — VA',
-            } as any;
-            desktop.children.push(qid);
-          }
-
           setFs(next);
         } catch {
           setFs(incoming as any);
@@ -186,14 +167,14 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
       <div className="absolute inset-0 bg-background/30" />
 
       {/* Top actions/info */}
-      <div className="absolute top-2 right-2 z-50">
+      <div className="absolute top-2 right-2 z-50 italic">
         <Tooltip>
           <TooltipTrigger className="px-2 py-1 rounded-md border bg-card hover:bg-secondary text-xs flex items-center gap-1">
             <Info className="h-4 w-4" />
             <span>Info</span>
             <span className="text-primary animate-pulse">♥</span>
           </TooltipTrigger>
-          <TooltipContent>Don't forget you are being loved!!🥰</TooltipContent>
+          <TooltipContent className="mr-2 text-xs">Don't forget you are being loved!!🥰</TooltipContent>
         </Tooltip>
       </div>
 
@@ -205,7 +186,18 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
             name={n.name}
             type={n.type}
             onOpen={() => (n.type === 'folder' ? openFolder(n.id) : openFile(n.id))}
-            onDelete={n.id !== fs.desktopId && n.id !== fs.trashId && n.name !== 'Easter Egg' ? () => setFs(moveToTrash(fs, n.id)) : undefined}
+            onDelete={
+              n.id !== fs.desktopId &&
+              n.id !== fs.trashId &&
+              n.name !== 'Easter Egg' &&
+              n.name !== 'The Diary' &&
+              n.name.toLowerCase() !== 'quotes.txt'
+                ? () => {
+                    setFs(moveToTrash(fs, n.id));
+                    toast({ title: "Moved to Trash", description: `${n.name} was moved to Trash.`, duration: 1500 });
+                  }
+                : undefined
+            }
             onRename={n.id !== fs.desktopId && n.id !== fs.trashId ? () => {
               const newName = prompt('Rename to:', n.name) || '';
               if (newName.trim()) setFs(renameNode(fs, n.id, newName.trim()));
@@ -228,8 +220,11 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
               onOpenFile={openFile}
               onCreateFile={(name) => setFs(createFile(fs, w.folderId, name))}
               onCreateFolder={(name) => setFs(createFolder(fs, w.folderId, name))}
-              onDelete={(id) => setFs(moveToTrash(fs, id))}
-              onRename={(id, name) => setFs(renameNode(fs, id, name))}
+              onDelete={(id) => {
+                const node = getNode(fs, id);
+                setFs(moveToTrash(fs, id));
+                toast({ title: "Moved to Trash", description: `${node?.name || 'Item'} was moved to Trash.`, duration: 1500 });
+              }}
               onRestore={(id) => setFs(restoreFromTrash(fs, id))}
               onPermanentDelete={(id) => setFs(deletePermanently(fs, id))}
             />
@@ -247,7 +242,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
               fileId={w.fileId}
               onSave={(content) => {
                 setFs(updateFileContent(fs, w.fileId, content));
-                toast({ title: "Saved with love", description: "Your changes are safe and synced." });
+                toast({ title: "Saved with love", description: "Your changes are safe and synced.", duration: 1500 });
               }}
               onRename={(name) => setFs(renameNode(fs, w.fileId, name))}
             />
@@ -264,7 +259,7 @@ const Desktop: React.FC<{ userId?: string; onLogout?: () => void }> = ({ userId,
           onNewFile={onNewFileDesktop}
           onNewFolder={onNewFolderDesktop}
           onOpenPhotos={() => setWindows((w) => [...w, { type: 'photos', title: 'Photos' }])}
-          onOpenExplorer={() => setWindows((w) => [...w, { type: 'explorer', folderId: fs.desktopId, title: 'Desktop' }])}
+          //onOpenExplorer={() => setWindows((w) => [...w, { type: 'explorer', folderId: fs.desktopId, title: 'Desktop' }])}
           onChangeWallpaper={changeWallpaper}
           onOpenQuotes={() => {
             const q = Object.values(fs.nodes).find((n) => n.type === 'file' && n.name.toLowerCase() === 'quotes.txt') as any;
@@ -304,16 +299,16 @@ const DesktopQuotes: React.FC<{ fs: FileSystem }> = ({ fs }) => {
     return lines[idx];
   }, [file]);
   return (
-    <div className="fixed right-3 top-12 z-40">
+    <div className="fixed right-2 bottom-14 z-40">
       <Tooltip>
-        <TooltipTrigger className="px-4 py-2 rounded-full border bg-card/80 backdrop-blur shadow-lg text-sm text-foreground">
+        <TooltipTrigger className="px-2 py-1 rounded-md border bg-card/80 backdrop-blur shadow-lg text-xs text-foreground">
           <span className="flex items-center gap-2">
-            <Heart className="h-4 w-4 animate-heartbeat" />
-            Come here!
-            <Sparkles className="h-4 w-4" />
+            {/* <Heart className="h-3 w-3 animate-heartbeat" />
+            <Sparkles className="h-3 w-3" /> */}
+            For You...
           </span>
         </TooltipTrigger>
-        <TooltipContent className="max-w-sm animate-scale-in">
+        <TooltipContent className="max-w-sm animate-scale-in mr-2" side="top">
           <div className="text-muted-foreground italic">{quote}</div>
         </TooltipContent>
       </Tooltip>

@@ -11,17 +11,14 @@ export interface FileExplorerProps {
   onCreateFile: (name: string) => void;
   onCreateFolder: (name: string) => void;
   onDelete: (id: string) => void;
-  onRename: (id: string, newName: string) => void;
   onRestore: (id: string) => void;
   onPermanentDelete: (id: string) => void;
 }
 
-const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, onCreateFolder, onDelete, onRename, onRestore, onPermanentDelete }: FileExplorerProps) => {
+const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, onCreateFolder, onDelete, onRestore, onPermanentDelete }: FileExplorerProps) => {
   const folder = getNode(fs, folderId) as FolderNode;
   const children: FSNode[] = useMemo(() => listChildren(fs, folderId), [fs, folderId]);
   const [name, setName] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
   const isTrashFolder = folderId === fs.trashId;
 
   return (
@@ -53,7 +50,7 @@ const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, on
           })()}
         </div>
       ) : (
-        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-2">
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-6 mt-2">
           {children.map((n) => (
             <div key={n.id} className="flex flex-col items-center gap-1">
               <DesktopIcon
@@ -61,28 +58,15 @@ const FileExplorer = ({ fs, folderId, onOpenFolder, onOpenFile, onCreateFile, on
                 type={n.type}
                 onOpen={() => (n.type === 'folder' ? onOpenFolder(n.id) : onOpenFile(n.id))}
                 onDelete={isTrashFolder ? undefined : () => onDelete(n.id)}
-                onRename={() => { setEditingId(n.id); setEditingName(n.name); }}
               />
-              {editingId === n.id && (
-                <div className="w-full flex items-center gap-1">
-                  <input
-                    className="px-2 py-1 border rounded-md bg-background w-full text-xs"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { onRename(n.id, editingName); setEditingId(null); } }}
-                  />
-                  <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => { onRename(n.id, editingName); setEditingId(null); }}>Save</button>
-                  <button className="px-2 py-1 rounded-md border text-xs" onClick={() => setEditingId(null)}>Cancel</button>
-                </div>
-              )}
               {isTrashFolder && (
                 <div className="flex items-center gap-2">
-                  <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => onRestore(n.id)}>Restore</button>
+                  <button className="px-2 py-1 rounded-md bg-secondary border text-xs" onClick={() => onRestore(n.id)}>🔄</button>
                   <button
-                    className="px-2 py-1 rounded-md bg-destructive text-destructive-foreground text-xs border"
+                    className="px-2 py-1 rounded-md bg-red-300 text-destructive-foreground text-xs border"
                     onClick={() => { if (confirm('Permanently delete this item? This cannot be undone.')) onPermanentDelete(n.id); }}
                   >
-                    Delete
+                    🗑️
                   </button>
                 </div>
               )}

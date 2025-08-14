@@ -19,7 +19,9 @@ function pad(n: number) {
 
 export function formatVellunaDate(date: Date = new Date()): string {
   const dd = pad(date.getDate());
+  const day = date.toLocaleDateString('en-US', { weekday: 'short' });
   const mm = pad(date.getMonth() + 1);
+  const months = date.toLocaleDateString('en-US', { month: 'short' });
   const dayCount = daysSinceOrigin(date);
   let hours = date.getHours();
   const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -27,5 +29,5 @@ export function formatVellunaDate(date: Date = new Date()): string {
   if (hours === 0) hours = 12;
   const hh = pad(hours);
   const min = pad(date.getMinutes());
-  return `${dd}-${mm}-${dayCount} | ${hh}:${min} ${ampm}`;
+  return `${day}, ${dd} ${months} | ${hh}:${min} ${ampm}`;
 }

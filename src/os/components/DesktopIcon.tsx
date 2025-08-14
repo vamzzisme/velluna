@@ -1,4 +1,4 @@
-import { Folder as FolderIcon, FileText, Trash2, Pencil, Sparkles, Heart } from "lucide-react";
+import { Folder as FolderIcon, FileText, Trash, Pencil, Sparkles, Heart, BookHeart, FileHeart, FolderHeart, Gift } from "lucide-react";
 
 export interface DesktopIconProps {
   name: string;
@@ -21,16 +21,16 @@ const DesktopIcon = ({ name, type, onOpen, onDelete, onRename, isTrash, isEaster
       >
         {type === 'folder' ? (
           isTrash ? (
-            <Trash2 className="h-8 w-8 text-primary" />
+            <Trash className="h-8 w-8 text-primary" />
           ) : isEasterEgg ? (
-            <Sparkles className="h-8 w-8 text-primary" />
+            <Gift className="h-8 w-8 text-primary" />
           ) : isDiary ? (
-            <Heart className="h-8 w-8 text-primary animate-heartbeat" />
+            <BookHeart className="h-8 w-8 text-primary" />
           ) : (
-            <FolderIcon className="h-8 w-8 text-primary" />
+            <FolderHeart className="h-8 w-8 text-primary" />
           )
         ) : (
-          <FileText className="h-8 w-8 text-primary" />
+          <FileHeart className="h-8 w-8 text-primary" />
         )}
         <span className="text-xs text-foreground px-1 text-center break-words">{name}</span>
       </button>

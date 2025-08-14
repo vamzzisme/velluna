@@ -30,6 +30,8 @@ export interface FileSystem {
 
 const FS_KEY = 'velluna-fs';
 
+const SHARED_FS_ID = 'shared'; // Single shared FS row for both users
+
 function nowISO() {
   return new Date().toISOString();
 }
@@ -266,52 +268,44 @@ export function loadFS(): FileSystem {
 
 async function loadFromSupabase(): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data, error } = await supabase
-        .from('user_data')
-        .select('fs_json')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.fs_json && !error) {
-        const parsed = data.fs_json as any;
-        cachedFS = parsed as FileSystem;
-        localStorage.setItem(FS_KEY, JSON.stringify(cachedFS));
-      } else if (cachedFS) {
-        // Migrate local data to Supabase
-        await saveFS(cachedFS);
-      }
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('fs_json')
+      .eq('user_id', SHARED_FS_ID)
+      .single();
+    
+    if (!data || error) {
+      cachedFS = defaultFS();
+      await saveToSupabase(cachedFS);
+    } else {
+      cachedFS = data.fs_json as unknown as FileSystem;
     }
+    localStorage.setItem(FS_KEY, JSON.stringify(cachedFS));
   } catch (error) {
     console.error('Error loading from Supabase:', error);
   }
 }
 
-export function saveFS(fs: FileSystem): FileSystem {
+export async function saveFS(fs: FileSystem): Promise<FileSystem> {
   cachedFS = fs;
   localStorage.setItem(FS_KEY, JSON.stringify(fs));
-  
-  // Async save to Supabase
-  saveToSupabase(fs).catch(error => {
+  try {
+    await saveToSupabase(fs);
+  } catch (error) {
     console.error('Error saving to Supabase:', error);
-  });
-  
+  }
   return fs;
 }
 
 async function saveToSupabase(fs: FileSystem): Promise<void> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase
-        .from('user_data')
-        .upsert({
-          user_id: user.id,
-          fs_json: fs as any,
-          updated_at: new Date().toISOString()
-        });
-    }
+    await supabase
+      .from('user_data')
+      .upsert({
+        user_id: SHARED_FS_ID,
+        fs_json: fs as any,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
   } catch (error) {
     console.error('Error saving to Supabase:', error);
   }
