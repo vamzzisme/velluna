@@ -29,7 +29,7 @@ const Taskbar = ({ onToggleMenu, userId, onLogout }: TaskbarProps) => {
               <BatteryFull className="h-4 w-4 text-primary" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top" align="center" className="animate-scale-in">
+          <TooltipContent side="top" align="center" className="animate-scale-in ml-2">
             This OS runs on 3 things: Hope, Heartbeats, and You
           </TooltipContent>
         </Tooltip>
